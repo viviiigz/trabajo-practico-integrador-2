@@ -2,6 +2,7 @@ import express from 'express';
 import "dotenv/config";
 import cors from 'cors';
 import { connectDB } from './src/config/database.js';
+import userModel from './src/models/user.model.js';
 
 
 const app = express();
