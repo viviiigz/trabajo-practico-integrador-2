@@ -8,16 +8,23 @@ export const profileValidator = [
     .isLength({ min: 2, max: 50 })
     .withMessage("El nombre debe tener entre 2 y 50 caracteres.")
     .trim()
-    .isAlphanumeric()
-    .withMessage("El nombre debe contener solo letras"),
+    .isString()
+    .withMessage("El nombre debe ser texto.")
+    // Usamos matches() con la expresión regular extendida:
+    .matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/),
+
+    
   //validar apellido
   body("profile.last_name")
     .notEmpty()
     .withMessage("El apellido es obligatorio.")
     .isLength({ min: 2, max: 50 })
     .withMessage("El apellido debe tener entre 2 y 50 caracteres.")
-    .isAlphanumeric()
-    .withMessage("El apellido debe contener solo letras"),
+    .isString()
+    .withMessage("El nombre debe ser texto.")
+    // Usamos matches() con la expresión regular extendida:
+    .matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/),
+
   //validar bio
   body("profile.biography")
     .optional()
@@ -41,15 +48,20 @@ export const updateProfileValidator = [
     .isLength({ min: 2, max: 50 })
     .withMessage("El nombre debe tener entre 2 y 50 caracteres.")
     .trim()
-    .isAlphanumeric()
-    .withMessage("El nombre debe contener solo letras"),
+    .isString()
+    .withMessage("El nombre debe ser texto.")
+    .matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/),
+
   //validar apellido
   body("profile.last_name")
     .optional()
     .isLength({ min: 2, max: 50 })
     .withMessage("El apellido debe tener entre 2 y 50 caracteres.")
-    .isAlphanumeric()
-    .withMessage("El apellido debe contener solo letras"),
+    .isString()
+    .withMessage("El nombre debe ser texto.")
+    // Usamos matches() con la expresión regular extendida:
+    .matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/),
+
   //validar bio
   body("profile.biography")
     .optional()

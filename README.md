@@ -38,6 +38,12 @@ Verifica las credenciales y, si son correctas, emite el JWT en una cookie.
 3. Logout (POST /api/auth/logout) 
 --Ruta Protegida--- Solo se ejecuta si el usuario está autenticado (gracias al authMiddleware). Su función es simplemente eliminar la cookie de sesión (res.clearCookie("token")).
 
+4. Actualizar perfil (PUT /api/auth/profile)
+--Ruta Protegida-- Es el endpoint para actualizar la información del perfil del usuario autenticado.
+
+5. Obtener perfil (GET /api/auth/profile)
+--Ruta Protegida-- Es el endpoint para obtener la información del perfil del usuario autenticado.
+
 ---El Porqué del Embebido (Modelo de Datos)---
 Usé la técnica de subdocumentos embebidos para el perfil (first_name, biography, etc.) en mi UserModel.
 
