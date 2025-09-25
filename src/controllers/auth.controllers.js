@@ -1,51 +1,49 @@
 import { validationResult } from "express-validator";
-import {generateToken} from "../helpers/jwt.helper.js"
-import { hashPassword, comparePasswords } from "../helpers/bcrypt.helper.js"
+import { generateToken } from "../helpers/jwt.helper.js";
+import { hashPassword, comparePasswords } from "../helpers/bcrypt.helper.js";
 import UserModel from "../models/user.model.js";
-
+import userModel from "../models/user.model.js";
 
 export const register = async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-    }
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
 
-    const { username, email, password, role, profile } = req.body;
+  const { username, email, password, role, profile } = req.body;
 
-    try {
+  try {
+    const hashedPassword = await hashPassword(password);
 
-        const hashedPassword = await hashPassword(password);
+    const newUser = await UserModel.create({
+      username: username,
+      email: email,
+      password: hashedPassword,
+      role: role,
+      profile: {
+        first_name: profile.first_name,
+        last_name: profile.last_name,
+        biography: profile.biography,
+        avatar_url: profile.avatar_url,
+        birth_date: profile.birth_date,
+      },
+    });
 
-        const newUser = await UserModel.create({
-            username:username,
-            email: email,
-            password: hashedPassword,
-            role: role,
-            profile: {
-                first_name: profile.first_name,
-                last_name: profile.last_name,
-                biography: profile.biography,
-                avatar_url: profile.avatar_url,
-                birth_date: profile.birth_date,
-            },
-        });
-
-        return res.status(201).json({ 
-            message: 'Usuario registrado correctamente',
-            user: newUser.username,
-        });
-    } catch (error) {
-
-        console.error(error);
-        return res.status(500).json({ message: 'Error interno del servidor' });
-    }
+    return res.status(201).json({
+      message: "Usuario registrado correctamente",
+      user: newUser.username,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Error interno del servidor" });
+  }
 };
 
-export const login = async(req, res) => {
-    const {username, password } = req.body;
+export const login = async (req, res) => {
+  const { username, password } = req.body;
 
-    try {
-      const user = await UserModel.findOne({
+  try {
+    const user = await UserModel.findOne({
       username: username,
     });
     console.log(user);
@@ -77,7 +75,7 @@ export const login = async(req, res) => {
       msg: "Error interno del servidor",
     });
   }
-}
+};
 
 export const logout = async (req, res) => {
   try {
@@ -93,9 +91,44 @@ export const logout = async (req, res) => {
   }
 };
 
-//falta obtner perfil (user auth)
+//obtner perfil (user auth)
+export const getProfile = async (req, res) => {
+  const user = req.user.id;
+  try {
+    const userConProfile = await UserModel.findById(user).select("-password");
 
+    if (!user) {
+      return res
+        .status(404)
+        .json({ message: "Usuario no autenticado. Por favor inicie sesión" });
+    }
+    res.status(200).json(userConProfile);
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json({ message: "Error interno del servidor", error });
+  }
+};
 //actualzar (user auth)
-export const updateProfile = () => {};
+export const updateProfile = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const profileData = req.body;
 
+    //$set para actualizar el objeto incrustado 'profile'
+    const updatedUser = await UserModel.findByIdAndUpdate(userId,
+      { $set: { profile: profileData } },
+      { new: true } // retorna el documento actualizado
+    ).select("-password");
+
+    res.status(200).json({
+      msg: "Perfil actualizado exitosamente",
+      user: updatedUser,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ msg: "Error al actualizar el perfil" });
+  }
+};
 
