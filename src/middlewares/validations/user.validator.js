@@ -24,7 +24,6 @@ export const createUserValidator = [
     body('username')
     .trim()
     .notEmpty().withMessage('El username es obligatorio')
-    .isAlphanumeric().withMessage('El username debe ser alfanúmerico')
     .isLength({min: 3, max: 20}).withMessage('El username debe contener entre 3 y 20 caracteres')
     .custom(async(value)=>{
         const user = await UserModel.findOne({ username: value});
@@ -52,6 +51,6 @@ export const createUserValidator = [
     //validar el role
     body('role')
     .optional()
-    .isInt(['user', 'admin']).withMessage('Rol inválido, solo puede ser "admin" o "user"')
+    .isIn(['user', 'admin']).withMessage('Rol inválido, solo puede ser "admin" o "user"')
 
 ]

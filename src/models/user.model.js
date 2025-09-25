@@ -27,14 +27,14 @@ const UserSchema = new Schema(
       first_name: {
         type: String,
         required: true,
-        minlength: 2,
-        maxLength: 50,
+        // minlength: 2,
+        // maxLength: 50,
       },
       last_name: {
         type: String,
         required: true,
-        minlength: 2,
-        maxLength: 50,
+        // minlength: 2,
+        // maxLength: 50,
       },
       biography: {
         type: String,
