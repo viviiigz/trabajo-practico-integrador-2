@@ -79,7 +79,7 @@ articleRouter.delete(
 );
 
 
-// relaciomn muchps a muchoss
+// relaciomn muchos a muchoss
 articleRouter.post(
     "/articles/:articleId/tags/:tagId",
     authMiddleware,
