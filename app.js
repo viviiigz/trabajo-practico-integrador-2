@@ -3,6 +3,9 @@ import "dotenv/config";
 import cors from 'cors';
 import { connectDB } from './src/config/database.js';
 import userModel from './src/models/user.model.js';
+import commentModel from './src/models/comment.model.js';
+import tagModel from './src/models/tag.model.js';
+import articleModel from './src/models/article.model.js'
 import cookieParser from 'cookie-parser';
 import { routes } from './src/routes/index.js';
 

@@ -56,7 +56,25 @@ const UserSchema = new Schema(
   {
     timestamps: true,
     versionKey: false,
+    toJSON: { virtuals: true }, 
+    toObject: { virtuals: true },
+    id:false //para desactivar el id q muestra el virtual
+
   }
 );
 
+UserSchema.virtual('articles', {
+  ref: 'ArticleModel',   
+  localField: '_id',   
+  foreignField: 'author',
+  justOne: false        
+});
+
+
+UserSchema.virtual('comments', {
+  ref: 'CommentModel',   
+  localField: '_id',   
+  foreignField: 'author',
+  justOne: false        
+});
 export default model("UserModel", UserSchema);

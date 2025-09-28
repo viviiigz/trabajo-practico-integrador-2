@@ -2,7 +2,6 @@ import { validationResult } from "express-validator";
 import { generateToken } from "../helpers/jwt.helper.js";
 import { hashPassword, comparePasswords } from "../helpers/bcrypt.helper.js";
 import UserModel from "../models/user.model.js";
-import userModel from "../models/user.model.js";
 
 export const register = async (req, res) => {
   const errors = validationResult(req);
@@ -59,7 +58,10 @@ export const login = async (req, res) => {
         msg: "El usuario o la contraseña no coinciden",
       });
     }
-    const token = generateToken(user);
+    const token = generateToken({
+      id: user._id,
+      role: user.role,
+    });
 
     res.cookie("token", token, {
       httpOnly: true,
@@ -91,25 +93,32 @@ export const logout = async (req, res) => {
   }
 };
 
-//obtner perfil (user auth)
+//este se cambio pq no me tomaba el token
 export const getProfile = async (req, res) => {
-  const user = req.user.id;
-  try {
-    const userConProfile = await UserModel.findById(user).select("-password");
+  console.log("usuario autenticado", req.user);
+  const userId = req.user.id;
 
-    if (!user) {
+  try {
+    const userConProfile = await UserModel.findById(userId).select("-password");
+
+    if (!userConProfile) {
       return res
         .status(404)
-        .json({ message: "Usuario no autenticado. Por favor inicie sesión" });
+        .json({
+          message:
+            "Usuario asociado al token no encontrado en la base de datos.",
+        });
     }
-    res.status(200).json(userConProfile);
+
+    return res.status(200).json(userConProfile);
   } catch (error) {
-    console.log(error);
+    console.error("Error al obtener perfil:", error);
     return res
       .status(500)
-      .json({ message: "Error interno del servidor", error });
+      .json({ message: "Error interno del servidor", error: error.message });
   }
 };
+
 //actualzar (user auth)
 export const updateProfile = async (req, res) => {
   try {
@@ -117,7 +126,8 @@ export const updateProfile = async (req, res) => {
     const profileData = req.body;
 
     //$set para actualizar el objeto incrustado 'profile'
-    const updatedUser = await UserModel.findByIdAndUpdate(userId,
+    const updatedUser = await UserModel.findByIdAndUpdate(
+      userId,
       { $set: { profile: profileData } },
       { new: true } // retorna el documento actualizado
     ).select("-password");
@@ -131,4 +141,3 @@ export const updateProfile = async (req, res) => {
     res.status(500).json({ msg: "Error al actualizar el perfil" });
   }
 };
-
