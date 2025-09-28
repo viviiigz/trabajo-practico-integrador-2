@@ -33,7 +33,7 @@ export const getCommentsByArticle = async (req, res) => {
 
     try {
         const comments = await CommentModel.find({ article: articleId })
-            .populate('author'); 
+            .populate('author','username'); 
             
         return res.status(200).json(comments);
 

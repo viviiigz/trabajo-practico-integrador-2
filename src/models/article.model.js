@@ -31,6 +31,10 @@ const ArticleSchema = new Schema(
         ref: "TagModel",
       },
     ],
+    deletedAt: {
+        type: Date,
+        default: null
+    }
   },
   {
     timestamps: true,

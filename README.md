@@ -1,56 +1,203 @@
- TRABAJO PRÁCTICO INTEGRADOR 2
+# Trabajo Práctico 2 - API RESTful con MongoDB y Express
 
----Características y Tecnologías Clave---
-Autenticación Segura (jwt): Utilizo JSON Web Tokens para manejar las sesiones. Los tokens se almacenan de forma segura en cookies.
+## 1. Decisiones de Modelado: Embebido vs Referenciado
 
-Gestión de Datos: Uso Mongoose para la conexión con MongoDB. El modelo de usuario incluye un subdocumento anidado (profile) para manejar la información personal.
+### Relación embebida: Perfil de usuario
+El campo `profile` está embebido dentro del documento de usuario.  
+**Ventajas:**  
+- Acceso rápido y sencillo al perfil junto con los datos del usuario.
+- Menor complejidad en consultas y actualizaciones simples.
 
-Seguridad: Implementé bcrypt para el hasheo de contraseñas y un authMiddleware que protege todas las rutas sensibles.
+**Desventajas:**  
+- Si el perfil creciera mucho o necesitara ser compartido entre usuarios, sería menos flexible.
+- No se puede referenciar el perfil desde otros modelos.
 
-Validación Estricta: 
+### Relación referenciada: Artículos, Comentarios y Etiquetas
+Las relaciones entre usuarios, artículos, comentarios y etiquetas se implementan mediante referencias (`ObjectId`).
 
+**Ventajas:**  
+- Permite escalabilidad y reutilización de datos (por ejemplo, un artículo puede tener muchas etiquetas).
+- Facilita la normalización y evita duplicidad de datos.
+- Permite consultas complejas con `populate`.
 
---- Instalación y Uso---
-1. Requisitos
-Tener Node.js y una instancia de MongoDB disponibles.
+**Desventajas:**  
+- Requiere más consultas (joins) para obtener datos relacionados.
+- Mayor complejidad en la gestión de eliminaciones en cascada.
 
-Ejecuta npm install para instalar todas las dependencias.
+## 2. Documentación de Endpoints
 
-Crea un archivo .env en la raíz del proyecto.
+### Autenticación
 
-Configura tus variables de entorno usando el .env.example.
+#### Registro de usuario
+**POST** `/api/auth/register`
+```json
+Request:
+{
+  "username": "juan",
+  "email": "juan@mail.com",
+  "password": "Password123",
+  "role": "user", //puede ser opcional
+  "profile": {
+    "first_name": "Juan",
+    "last_name": "Pérez",
+    "biography": "Desarrollador",
+    "avatar_url": "https://img.com/avatar.jpg",
+    "birth_date": "2006-01-01"
+  }
+}
+Response:
+{
+  "message": "Usuario registrado correctamente",
+  "user": "juan"
+}
+```
 
-2. Ejecución del Servidor
-Bash
+#### Login
+**POST** `/api/auth/login`
+```json
+Request:
+{
+  "username": "juan",
+  "password": "Password123"
+}
+Response:
+{
+  "msg": "Logeado correctamente"
+}
+```
 
-npm run dev
+#### Obtener perfil
+**GET** `/api/auth/profile`
+```json
+Response:
+{
+  "_id": "652e...",
+  "username": "juan",
+  "email": "juan@mail.com",
+  "role": "user",
+  "profile": {
+    "first_name": "Juan",
+    "last_name": "Pérez",
+    "biography": "Desarrollador",
+    "avatar_url": "https://img.com/avatar.jpg",
+    "birth_date": "2006-01-01T00:00:00.000Z"
+  }
+}
+```
 
----Endpoints Implementados ---
- --Para la Autentificación--
-La API utiliza el prefijo /api/auth para todas las rutas de sesión.
+### Artículos
 
-1. Registro (POST /api/auth/register) 
-Crea un nuevo usuario, hashea la contraseña y valida todos los campos, incluyendo los datos anidados del perfil.
+#### Crear artículo
+**POST** `/api/articles`
+```json
+Request:
+{
+  "title": "Mi primer artículo",
+  "content": "Contenido largo...",
+  "tags": ["6530..."]
+}
+Response:
+{
+  "message": "Artículo creado exitosamente.",
+  "article": { ... }
+}
+```
 
-2. Login (POST /api/auth/login)
-Verifica las credenciales y, si son correctas, emite el JWT en una cookie.
+#### Listar artículos publicados
+**GET** `/api/articles`
+```json
+Response:
+[
+  {
+    "_id": "6531...",
+    "title": "Mi primer artículo",
+    "author": { "username": "juan" },
+    "tags": [{ "name": "MongoDB" }]
+  }
+]
+```
 
-3. Logout (POST /api/auth/logout) 
---Ruta Protegida--- Solo se ejecuta si el usuario está autenticado (gracias al authMiddleware). Su función es simplemente eliminar la cookie de sesión (res.clearCookie("token")).
+### Etiquetas
 
-4. Actualizar perfil (PUT /api/auth/profile)
---Ruta Protegida-- Es el endpoint para actualizar la información del perfil del usuario autenticado.
+#### Crear etiqueta
+**POST** `/api/tags`
+```json
+Request:
+{
+  "name": "MongoDB",
+  "description": "Base de datos NoSQL"
+}
+Response:
+{
+  "message": "Etiqueta creada exitosamente.",
+  "tag": { ... }
+}
+```
 
-5. Obtener perfil (GET /api/auth/profile)
---Ruta Protegida-- Es el endpoint para obtener la información del perfil del usuario autenticado.
+### Comentarios
 
----El Porqué del Embebido (Modelo de Datos)---
-Usé la técnica de subdocumentos embebidos para el perfil (first_name, biography, etc.) en mi UserModel.
+#### Crear comentario
+**POST** `/api/comments`
+```json
+Request:
+{
+  "content": "Muy buen artículo!",
+  "articleId": "6531..."
+}
+Response:
+{
+  "message": "Comentario creado exitosamente.",
+  "comment": { ... }
+}
+```
 
-1. ¿Cómo Lo Hice?
-Definí el objeto profile anidado dentro del esquema principal de usuario. En el controlador, paso el objeto anidado (profile: req.body.profile) al crear el usuario.
+## 3. Instrucciones de Instalación y Configuración
 
-2. ¿Por Qué Lo Hice?
-La razón es la simplicidad:
+1. **Clonar el repositorio**
+   ```bash
+   git clone <url-del-repo>
+   cd trabajo-practico2
+   ```
 
- Garantiza que el perfil y la cuenta sean una sola unidad y siempre estén sincronizados.
+2. **Instalar dependencias**
+   ```bash
+   npm install
+   ```
+
+3. **Configurar variables de entorno**
+   - Copiar `.env.example` a `.env` y completar:
+     ```
+     PORT=3000
+     JWT_SECRET=tu_clave_secreta
+     ```
+
+4. **Iniciar el servidor**
+   ```bash
+   npm run dev
+   ```
+
+## 4. Validaciones Personalizadas
+
+- **Usuarios:**  
+  - Username único, longitud mínima y máxima.
+  - Email único y formato válido.
+  - Contraseña con mínimo de 8 caracteres, mayúscula, minúscula y número.
+  - Rol permitido: `user` o `admin`.
+
+- **Perfil:**  
+  - Nombre y apellido obligatorios, solo letras y espacios.
+  - Biografía opcional, máximo 500 caracteres.
+  - Avatar URL válida.
+  - Fecha de nacimiento en formato ISO.
+
+- **Artículos y Etiquetas:**  
+  - Título y contenido con longitud mínima.
+  - Validación de IDs de artículos y etiquetas (ObjectId válido y existencia en la base).
+
+- **Comentarios:**  
+  - Contenido obligatorio, máximo 500 caracteres.
+  - Validación de ID de comentario.
+
+Las validaciones se implementan con `express-validator` y se retornan errores claros en el response.
+
+---
