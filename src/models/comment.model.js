@@ -6,12 +6,13 @@ const CommentSchema = new Schema(
             type: String,
             required: true,
         },
+        //referenciaa
         author: {
             type: Types.ObjectId,
             ref: "UserModel", 
             required: true
         },
-
+//referenciaaa
         article: {
             type: Types.ObjectId,
             ref: "ArticleModel",
